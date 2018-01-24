@@ -234,6 +234,31 @@ public class Provider extends ContentProvider {
 
                 break;
 
+            case ProviderUris.NOTES_ID_CONTENT_TIMES:
+                noteId = Long.parseLong(uri.getPathSegments().get(1));
+
+                selection = field(DbNoteContentTime.TABLE, DbNoteContentTime.NOTE_ID) + "=" + noteId;
+                selectionArgs = null;
+
+                table = DbNoteContentTime.TABLE + " " +
+                    join(DbOrgRange.TABLE, "trange", DbOrgRange._ID, DbNoteContentTime.TABLE, DbNoteContentTime.TIME_ID);
+
+                projection = new String[] {
+                    "trange." + DbOrgRange.STRING
+                };
+
+                break;
+
+            case ProviderUris.NOTES_CONTENT_TIMES:
+                table = DbNoteContentTime.TABLE + " " +
+                    join(DbOrgRange.TABLE, "trange", DbOrgRange._ID, DbNoteContentTime.TABLE, DbNoteContentTime.TIME_ID);
+
+                projection = new String[] {
+                    "trange." + DbOrgRange.STRING
+                };
+
+                break;
+
             case ProviderUris.BOOKS:
                 table = DbBookView.VIEW_NAME;
                 break;
@@ -442,6 +467,15 @@ public class Provider extends ContentProvider {
                 long notePropertyId = DbNoteProperty.getOrInsert(db, noteId, pos, propertyId);
 
                 return ContentUris.withAppendedId(uri, notePropertyId);
+
+            case ProviderUris.NOTES_CONTENT_TIMES:
+                noteId = contentValues.getAsLong(ProviderContract.NoteContentTimes.Param.NOTE_ID);
+                String timeString = contentValues.getAsString(ProviderContract.NoteContentTimes.Param.TIME_STRING);
+
+                long timeId = getOrInsertOrgRange(db, OrgRange.parse(timeString));
+                long noteTimeId = DbNoteContentTime.getOrInsert(db, noteId, timeId);
+
+                return ContentUris.withAppendedId(uri, noteTimeId);
 
             case ProviderUris.LOAD_BOOK_FROM_FILE:
                 resultUri = loadBookFromFile(contentValues);
@@ -836,6 +870,20 @@ public class Provider extends ContentProvider {
 
                 selection = DbNoteProperty.NOTE_ID + " = " + noteId;
                 selectionArgs = null;
+
+                break;
+
+            case ProviderUris.NOTES_ID_CONTENT_TIMES:
+                noteId = Long.parseLong(uri.getPathSegments().get(1));
+
+                if (BuildConfig.LOG_DEBUG) LogUtils.d(TAG, uri.getQuery());
+
+                table = DbNoteContentTime.TABLE;
+
+                selection = DbNoteContentTime.NOTE_ID + " = " + noteId;
+                selectionArgs = null;
+
+                // TODO: do we need to delete the OrgRange?
 
                 break;
 

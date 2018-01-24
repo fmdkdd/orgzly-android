@@ -2,6 +2,8 @@ package com.orgzly.android.provider;
 
 import android.database.Cursor;
 
+import com.orgzly.org.datetime.OrgRange;
+
 import com.orgzly.android.Book;
 import com.orgzly.android.BookName;
 import com.orgzly.android.Note;
@@ -13,6 +15,7 @@ import com.orgzly.android.repos.VersionedRook;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -190,5 +193,52 @@ public class ProviderTest extends OrgzlyTest {
         NotesClient.delete(context, new long[]{2L, 3L});
 
         assertEquals(0, NotesClient.getFirstNoteId(context, book.getId()));
+    }
+
+    @Test
+    public void testGetPlainTimestamps() throws IOException {
+        shelfTestUtils.setupBook("notebook", "* Note\n<2000-01-01 10:10>\n[2001-01-01 10:10]");
+
+        Cursor cursor = context.getContentResolver()
+            .query(ProviderContract.Times.ContentUri.times(), null, null, null, null);
+
+        assertEquals(1, cursor.getCount());
+        cursor.moveToFirst();
+        assertEquals("<2000-01-01 10:10>",
+                     cursor.getString(ProviderContract.Times.ColumnIndex.ORG_TIMESTAMP_STRING));
+
+        cursor.close();
+    }
+
+    @Test
+    public void testNoteContentTimes() throws IOException {
+        shelfTestUtils.setupBook("notebook", "* Note\n<2000-01-01 10:10>");
+
+        Note note = NotesClient.getNote(context, 1);
+        assertEquals(1, note.getHead().getTimestamps().size());
+        assertEquals("<2000-01-01 10:10>", note.getHead().getTimestamps().get(0).toString());
+
+        List<OrgRange> times = NotesClient.getNoteContentTimes(context, 1);
+        assertEquals("<2000-01-01 10:10>", times.get(0).toString());
+
+        /* Modify content of note */
+        note.getHead().setContent("<2001-01-01 10:10>");
+        NotesClient.update(context, note);
+
+        assertEquals(1, note.getHead().getTimestamps().size());
+        assertEquals("<2001-01-01 10:10>", note.getHead().getTimestamps().get(0).toString());
+
+        times = NotesClient.getNoteContentTimes(context, 1);
+        assertEquals(1, times.size());
+        assertEquals("<2001-01-01 10:10>", times.get(0).toString());
+
+        /* Delete content */
+        NotesClient.delete(context, new long[]{1L});
+
+        Cursor cursor = context.getContentResolver()
+            .query(ProviderContract.NoteContentTimes.ContentUri.notesContentTimes(), null, null, null, null);
+        assertEquals(0, cursor.getCount());
+
+        cursor.close();
     }
 }

@@ -130,6 +130,32 @@ public class ProviderContract {
         }
     }
 
+    public interface NoteContentTimes {
+        class Param {
+            public static final String NOTE_ID = "note_id";
+            public static final String TIME_STRING = "time_string";
+        }
+
+        interface MatcherUri {
+            String NOTES_CONTENT_TIMES = "notes/content_times";
+            String NOTES_ID_CONTENT_TIMES = "notes/#/content_times";
+        }
+
+        class ContentUri {
+            public static Uri notesContentTimes() {
+                return Uri.withAppendedPath(AUTHORITY_URI, MatcherUri.NOTES_CONTENT_TIMES);
+            }
+
+            public static Uri notesIdContentTimes(long id) {
+                Uri.Builder builder = AUTHORITY_URI.buildUpon();
+                builder = builder.appendPath("notes");
+                builder = ContentUris.appendId(builder, id);
+                builder = builder.appendPath("content_times");
+                return builder.build();
+            }
+        }
+    }
+
     public interface Notes {
         class Param {
             public static final String PROPERTY_NAME = "property_name";

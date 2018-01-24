@@ -88,6 +88,23 @@ public class NotesClient {
         return properties;
     }
 
+    public static List<OrgRange> getNoteContentTimes(Context context, long noteId) {
+        List<OrgRange> times = new ArrayList<>();
+
+        Cursor cursor = context.getContentResolver().query(
+                ProviderContract.NoteContentTimes.ContentUri.notesIdContentTimes(noteId), null, null, null, null);
+
+        try {
+            for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+                times.add(OrgRange.parse(cursor.getString(0)));
+            }
+        } finally {
+            cursor.close();
+        }
+
+        return times;
+    }
+
     public static void toContentValues(ContentValues values, Note note) {
         values.put(ProviderContract.Notes.UpdateParam.BOOK_ID, note.getPosition().getBookId());
 
@@ -255,6 +272,25 @@ public class NotesClient {
             );
         }
 
+        /* Delete all note's content times. */
+        ops.add(ContentProviderOperation
+                .newDelete(ProviderContract.NoteContentTimes.ContentUri.notesIdContentTimes(note.getId()))
+                .build()
+        );
+
+        /* Add each of the note's content times. */
+        for (OrgRange range: note.getHead().getTimestamps()) {
+            values = new ContentValues();
+
+            values.put(ProviderContract.NoteContentTimes.Param.NOTE_ID, note.getId());
+            values.put(ProviderContract.NoteContentTimes.Param.TIME_STRING, range.toString());
+
+            ops.add(ContentProviderOperation
+                    .newInsert(ProviderContract.NoteContentTimes.ContentUri.notesContentTimes())
+                    .withValues(values)
+                    .build()
+            );
+        }
 
         ContentProviderResult[] result;
 

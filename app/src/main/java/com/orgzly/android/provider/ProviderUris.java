@@ -43,6 +43,9 @@ class ProviderUris {
         matcher.addURI(ProviderContract.AUTHORITY, NoteProperties.MatcherUri.NOTES_PROPERTIES, NOTES_PROPERTIES);
         matcher.addURI(ProviderContract.AUTHORITY, NoteProperties.MatcherUri.NOTES_ID_PROPERTIES, NOTES_ID_PROPERTIES);
 
+        matcher.addURI(ProviderContract.AUTHORITY, NoteContentTimes.MatcherUri.NOTES_CONTENT_TIMES, NOTES_CONTENT_TIMES);
+        matcher.addURI(ProviderContract.AUTHORITY, NoteContentTimes.MatcherUri.NOTES_ID_CONTENT_TIMES, NOTES_ID_CONTENT_TIMES);
+
         matcher.addURI(ProviderContract.AUTHORITY, LocalDbRepo.MatcherUri.DB_REPOS, LOCAL_DB_REPO);
 
         /* Actions */
@@ -96,4 +99,7 @@ class ProviderUris {
     static final int BOOKS_ID_SPARSE_TREE = 34;
     static final int TIMES = 35;
     static final int NOTES_WITH_PROPERTY = 36;
+    static final int NOTES_CONTENT_TIMES = 37;
+    static final int NOTES_ID_CONTENT_TIMES = 38;
+
 }

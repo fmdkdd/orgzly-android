@@ -36,7 +36,7 @@ public class AgendaListViewAdapter extends HeadsListViewAdapter {
             // do not use @convertView
             return super.getView(position, null, parent);
         }
-        System.out.println("Position is: " + position);
+        // System.out.println("Position is: " + position);
 
         return super.getView(position, convertView, parent);
     }

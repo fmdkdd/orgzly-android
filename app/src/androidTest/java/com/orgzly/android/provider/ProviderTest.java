@@ -218,8 +218,8 @@ public class ProviderTest extends OrgzlyTest {
         assertEquals(1, note.getHead().getTimestamps().size());
         assertEquals("<2000-01-01 10:10>", note.getHead().getTimestamps().get(0).toString());
 
-        List<OrgRange> times = NotesClient.getNoteContentTimes(context, 1);
-        assertEquals("<2000-01-01 10:10>", times.get(0).toString());
+        List<String> times = NotesClient.getNoteContentTimes(context, 1);
+        assertEquals("<2000-01-01 10:10>", times.get(0));
 
         /* Modify content of note */
         note.getHead().setContent("<2001-01-01 10:10>");
@@ -230,7 +230,7 @@ public class ProviderTest extends OrgzlyTest {
 
         times = NotesClient.getNoteContentTimes(context, 1);
         assertEquals(1, times.size());
-        assertEquals("<2001-01-01 10:10>", times.get(0).toString());
+        assertEquals("<2001-01-01 10:10>", times.get(0));
 
         /* Delete content */
         NotesClient.delete(context, new long[]{1L});

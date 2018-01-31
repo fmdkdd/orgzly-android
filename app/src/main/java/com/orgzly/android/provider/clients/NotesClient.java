@@ -88,15 +88,15 @@ public class NotesClient {
         return properties;
     }
 
-    public static List<OrgRange> getNoteContentTimes(Context context, long noteId) {
-        List<OrgRange> times = new ArrayList<>();
+    public static List<String> getNoteContentTimes(Context context, long noteId) {
+        List<String> times = new ArrayList<>();
 
         Cursor cursor = context.getContentResolver().query(
                 ProviderContract.NoteContentTimes.ContentUri.notesIdContentTimes(noteId), null, null, null, null);
 
         try {
             for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
-                times.add(OrgRange.parse(cursor.getString(0)));
+                times.add(cursor.getString(0));
             }
         } finally {
             cursor.close();
@@ -348,6 +348,20 @@ public class NotesClient {
             );
         }
 
+        /* Add each of the note's content times. */
+        for (OrgRange range: note.getHead().getTimestamps()) {
+            values = new ContentValues();
+
+            //values.put(ProviderContract.NoteContentTimes.Param.NOTE_ID, note.getId());
+            values.put(ProviderContract.NoteContentTimes.Param.TIME_STRING, range.toString());
+
+            ops.add(ContentProviderOperation
+                    .newInsert(ProviderContract.NoteContentTimes.ContentUri.notesContentTimes())
+                    .withValues(values)
+                    .withValueBackReference(ProviderContract.NoteContentTimes.Param.NOTE_ID, 0)
+                    .build()
+            );
+        }
 
         ContentProviderResult[] result;
 
@@ -383,6 +397,18 @@ public class NotesClient {
             ops.add(ContentProviderOperation
                     .newDelete(ProviderContract.Notes.ContentUri.notes())
                     .withSelection(ProviderContract.Notes.UpdateParam._ID + "=" + noteId, null)
+                    .build()
+            );
+
+            /* Delete all note's properties. */
+            ops.add(ContentProviderOperation
+                    .newDelete(ProviderContract.NoteProperties.ContentUri.notesIdProperties(noteId))
+                    .build()
+            );
+
+            /* Delete all note's content times. */
+            ops.add(ContentProviderOperation
+                    .newDelete(ProviderContract.NoteContentTimes.ContentUri.notesIdContentTimes(noteId))
                     .build()
             );
         }

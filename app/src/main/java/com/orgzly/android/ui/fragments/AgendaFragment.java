@@ -21,6 +21,7 @@ import com.orgzly.BuildConfig;
 import com.orgzly.R;
 import com.orgzly.android.prefs.AppPreferences;
 import com.orgzly.android.provider.clients.NotesClient;
+import com.orgzly.android.provider.models.DbNote;
 import com.orgzly.android.provider.models.DbNoteColumns;
 import com.orgzly.android.provider.views.DbNoteViewColumns;
 import com.orgzly.android.query.Query;
@@ -239,13 +240,16 @@ public class AgendaFragment extends QueryFragment {
         long nextId = 1;
         originalNoteIDs.clear();
         for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
-            Set<DateTime> dates = AgendaUtils.expandOrgDateTime(
-                    new String[] {
-                            cursor.getString(scheduledRangeStrIdx),
-                            cursor.getString(deadlineRangeStrIdx)},
-                    now,
-                    agendaDays
-            );
+            // Consider scheduled and deadline timestamps, as well as all the
+            // eventual timestamps in the note content
+            List<String> noteTimes = new ArrayList<>();
+            noteTimes.add(cursor.getString(scheduledRangeStrIdx));
+            noteTimes.add(cursor.getString(deadlineRangeStrIdx));
+            noteTimes.addAll(NotesClient.getNoteContentTimes(getActivity().getApplicationContext(),
+                                                             cursor.getLong(cursor.getColumnIndex(DbNote._ID))));
+
+            Set<DateTime> dates = AgendaUtils.expandOrgDateTime(noteTimes.toArray(new String[noteTimes.size()]),
+                                                                now, agendaDays);
 
             for (DateTime date : dates) {
                 // create agenda cursors

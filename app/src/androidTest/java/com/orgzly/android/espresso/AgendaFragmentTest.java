@@ -30,6 +30,7 @@ import static com.orgzly.android.espresso.EspressoUtils.searchForText;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.startsWith;
 
 public class AgendaFragmentTest extends OrgzlyTest {
     @Rule
@@ -184,5 +185,26 @@ public class AgendaFragmentTest extends OrgzlyTest {
         openAgenda();
         onListItem(2).perform(longClick());
         onView(withId(R.id.fragment_note_title)).check(matches(withText("Note C")));
+    }
+
+    @Test
+    public void testPlainTimestamp() {
+        shelfTestUtils.setupBook("book-1","* Note A\n<2018-02-01 10:00>");
+        activityRule.launchActivity(null);
+
+        openAgenda();
+        onView(allOf(withId(android.R.id.list), isDisplayed())).check(matches(listViewItemCount(8)));
+        onListItem(2).onChildView(withId(R.id.item_head_title)).check(matches(allOf(withText(startsWith("Note A")), isDisplayed())));
+    }
+
+    @Test
+    public void testInactiveTimestamp() {
+        shelfTestUtils.setupBook("book-1","* Note A\n[2018-02-01 10:00]");
+        activityRule.launchActivity(null);
+
+        openAgenda();
+        onView(allOf(withId(android.R.id.list), isDisplayed())).check(matches(listViewItemCount(7)));
+
+
     }
 }

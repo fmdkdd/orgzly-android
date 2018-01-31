@@ -8,6 +8,9 @@ import com.orgzly.BuildConfig;
 import com.orgzly.android.NotePosition;
 import com.orgzly.android.provider.models.DbBook;
 import com.orgzly.android.provider.models.DbNote;
+import com.orgzly.android.provider.models.DbNoteContentTime;
+import com.orgzly.android.provider.models.DbOrgRange;
+import com.orgzly.android.provider.models.DbOrgTimestamp;
 import com.orgzly.android.ui.Place;
 import com.orgzly.android.util.LogUtils;
 
@@ -28,7 +31,14 @@ public class DatabaseUtils {
                                                      WHERE_EXISTING_NOTES + " AND " +
                                                      GenericDatabaseUtils.whereNullOrZero(DbNote.FOLDED_UNDER_ID) + ")";
 
-    public static final String WHERE_NOTES_WITH_TIMES = "(" + DbNote.SCHEDULED_RANGE_ID + " IS NOT NULL OR " + DbNote.DEADLINE_RANGE_ID + " IS NOT NULL)";
+    public static final String WHERE_NOTES_WITH_TIMES = "(" + DbNote.SCHEDULED_RANGE_ID + " IS NOT NULL OR "
+        + DbNote.DEADLINE_RANGE_ID + " IS NOT NULL "
+        + " OR (" + DbNote._ID + " IN (SELECT " + DbNoteContentTime.NOTE_ID
+        + " FROM " + DbNoteContentTime.TABLE + " n "
+        + " JOIN " + DbOrgRange.TABLE + " r ON (r." + DbOrgRange._ID + " = n." + DbNoteContentTime.TIME_ID + ")"
+        + " JOIN " + DbOrgTimestamp.TABLE + " t ON (t." + DbOrgTimestamp._ID + " = r." + DbOrgRange.START_TIMESTAMP_ID + ")"
+        + " WHERE t." + DbOrgTimestamp.IS_ACTIVE + " = 1"
+        + ")))";
 
     public static String whereUncutBookNotes(long bookId) {
         return "(" + DbNote.BOOK_ID + " = " + bookId + " AND " + WHERE_EXISTING_NOTES + ")";

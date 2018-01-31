@@ -241,4 +241,15 @@ public class ProviderTest extends OrgzlyTest {
 
         cursor.close();
     }
+
+    @Test
+    public void testNoteContentTimesInAgendaQuery() throws IOException {
+        shelfTestUtils.setupBook("notebook", "* Note\n<2000-01-01 10:10>");
+
+        Cursor cursor = context.getContentResolver()
+            .query(ProviderContract.Notes.ContentUri.notesSearchQueried("ad.30"), null, null, null, null);
+        assertEquals(1, cursor.getCount());
+
+        cursor.close();
+    }
 }
